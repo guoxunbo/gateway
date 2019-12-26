@@ -40,6 +40,25 @@
         <appender-ref ref="file"/>
     </appender>
 
+    <appender name="gateway" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/gateway/server.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/rest/server.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>500MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- name 需要分开记录日志的包名-->
+    <logger name="com.newbiest.gateway" level="DEBUG" additivity="false">
+        <appender-ref ref="gateway"/>
+    </logger>
+
     <!-- name-->
     <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
         <appender-ref ref="file"/>
