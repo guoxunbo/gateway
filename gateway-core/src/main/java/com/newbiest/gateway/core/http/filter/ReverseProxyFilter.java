@@ -75,37 +75,6 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
 
         ResponseEntity<byte[]> responseEntity = requestForwarder.forwardHttpRequest(dataToForward, mapping);
         this.processResponse(response, responseEntity);
-
-//        String traceId = traceInterceptor.generateTraceId();
-//        traceInterceptor.onRequestReceived(traceId, method, originHost, originUri, headers);
-//
-//        MappingProperties mapping = mappingsProvider.resolveMapping(originHost, request);
-//        if (mapping == null) {
-//            traceInterceptor.onNoMappingFound(traceId, method, originHost, originUri, headers);
-//
-//            log.debug(String.format("Forwarding: %s %s %s -> no mapping found", method, originHost, originUri));
-//
-//            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//            response.getWriter().println("Unsupported domain");
-//            return;
-//        } else {
-//            log.debug(String.format("Forwarding: %s %s %s -> %s", method, originHost, originUri, mapping.getDestinations()));
-//        }
-//
-//        byte[] body = extractor.extractBody(request);
-//        addForwardHeaders(request, headers);
-//
-//        RequestData dataToForward = new RequestData(method, originHost, originUri, headers, body, request);
-//        preForwardRequestInterceptor.intercept(dataToForward, mapping);
-//        if (dataToForward.isNeedRedirect() && !isBlank(dataToForward.getRedirectUrl())) {
-//            log.debug(String.format("Redirecting to -> %s", dataToForward.getRedirectUrl()));
-//            response.sendRedirect(dataToForward.getRedirectUrl());
-//            return;s
-//        }
-//
-//        ResponseEntity<byte[]> responseEntity =
-//                requestForwarder.forwardHttpRequest(dataToForward, traceId, mapping);
-//        this.processResponse(response, responseEntity);
     }
 
     protected void addForwardHeaders(HttpServletRequest request, HttpHeaders headers) {

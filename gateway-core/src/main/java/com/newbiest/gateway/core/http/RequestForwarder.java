@@ -6,41 +6,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static java.lang.System.nanoTime;
 import static org.springframework.http.HttpHeaders.*;
 import static org.springframework.http.ResponseEntity.status;
 
 @Slf4j
 public class RequestForwarder {
 
-//    protected final ServerProperties serverProperties;
     protected final HttpClientProvider httpClientProvider;
     protected final MappingsProvider mappingsProvider;
-//    protected final LoadBalancer loadBalancer;
-//    protected final Optional<MeterRegistry> meterRegistry;
-//    protected final ProxyingTraceInterceptor traceInterceptor;
-//    protected final PostForwardResponseInterceptor postForwardResponseInterceptor;
 
-    public RequestForwarder(
-            HttpClientProvider httpClientProvider,
-            MappingsProvider mappingsProvider
-//            Optional<MeterRegistry> meterRegistry
-    ) {
+    public RequestForwarder(HttpClientProvider httpClientProvider, MappingsProvider mappingsProvider) {
         this.httpClientProvider = httpClientProvider;
         this.mappingsProvider = mappingsProvider;
-//        this.meterRegistry = meterRegistry;
     }
 
     public ResponseEntity<byte[]> forwardHttpRequest(RequestData data, MappingProperties mapping) {
         ForwardDestination destination = resolveForwardDestination(data.getUri(), mapping);
         prepareForwardedRequestHeaders(data, destination);
-//        traceInterceptor.onForwardStart(traceId, destination.getMappingName(),
-//                data.getMethod(), data.getHost(), destination.getUri().toString(),
-//                data.getBody(), data.getHeaders());
+
         RequestEntity<byte[]> request = new RequestEntity<>(data.getBody(), data.getHeaders(), data.getMethod(), destination.getUri());
         ResponseData response = sendRequest(request, mapping, destination.getMappingMetricsName(), data);
 
@@ -100,29 +88,17 @@ public class RequestForwarder {
 
     protected ResponseData sendRequest(RequestEntity<byte[]> request, MappingProperties mapping, String mappingMetricsName, RequestData requestData ) {
         ResponseEntity<byte[]> response;
-        long startingTime = nanoTime();
         try {
             response = httpClientProvider.getHttpClient(mapping.getName()).exchange(request, byte[].class);
-            recordLatency(mappingMetricsName, startingTime);
-        }
-//        catch (HttpStatusCodeException e) {
-//            recordLatency(mappingMetricsName, startingTime);
-//            response = status(e.getStatusCode())
-//                    .headers(e.getResponseHeaders())
-//                    .body(e.getResponseBodyAsByteArray());
-//            throw e;
-//        }
-        catch (Exception e) {
-            recordLatency(mappingMetricsName, startingTime);
-//            traceInterceptor.onForwardFailed(traceId, e);
+        } catch (HttpStatusCodeException e) {
+            response = status(e.getStatusCode())
+                    .headers(e.getResponseHeaders())
+                    .body(e.getResponseBodyAsByteArray());
+        } catch (Exception e) {
             throw e;
         }
         UnmodifiableRequestData data = new UnmodifiableRequestData(requestData);
         return new ResponseData(response.getStatusCode(), response.getHeaders(), response.getBody(), data);
-    }
-
-    protected void recordLatency(String metricName, long startingTime) {
-//        meterRegistry.ifPresent(meterRegistry -> meterRegistry.timer(metricName).record(ofNanos(nanoTime() - startingTime)));
     }
 
     protected String resolveMetricsName(MappingProperties mapping) {

@@ -1,11 +1,11 @@
 package com.newbiest.gateway.config;
 
+import com.newbiest.base.http.filter.LogFilter;
 import com.newbiest.gateway.core.MappingsProvider;
 import com.newbiest.gateway.core.MappingsValidator;
 import com.newbiest.gateway.core.http.HttpCfgMappingsProvider;
 import com.newbiest.gateway.core.http.HttpClientProvider;
 import com.newbiest.gateway.core.http.RequestForwarder;
-import com.newbiest.gateway.core.http.filter.LogFilter;
 import com.newbiest.gateway.core.http.filter.ReverseProxyFilter;
 import lombok.Data;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,13 +43,7 @@ public class GatewayConfiguration {
         return registrationBean;
     }
 
-    @Bean
-    public FilterRegistrationBean<LogFilter> reverseLogFilterRegistrationBean() {
-        LogFilter logFilter = new LogFilter();
-        FilterRegistrationBean<LogFilter> registrationBean = new FilterRegistrationBean<>(logFilter);
-        registrationBean.setOrder(HIGHEST_PRECEDENCE + 1);
-        return registrationBean;
-    }
+
 
     @Bean
     @ConditionalOnMissingBean
