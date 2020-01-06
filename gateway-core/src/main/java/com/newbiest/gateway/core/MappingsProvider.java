@@ -16,7 +16,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 public abstract class MappingsProvider {
 
     protected MappingsValidator mappingsValidator;
-//    protected final HttpClientProvider httpClientProvider;
     protected List<MappingProperties> mappings;
 
     public MappingProperties resolveMapping(String originHost, HttpServletRequest request) {

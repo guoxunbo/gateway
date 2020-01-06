@@ -32,6 +32,24 @@
         </encoder>
     </appender>
 
+    <appender name="forward" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/forward/server.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/forward/server.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>500MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %X{TransactionId} %-5level|%logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.newbiest.gateway.core.http.RequestForwarder" level="DEBUG" additivity="false">
+        <appender-ref ref="forward"/>
+    </logger>
+
     <appender name="async_file_log" class="ch.qos.logback.classic.AsyncAppender">
         <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
         <discardingThreshold>0</discardingThreshold>

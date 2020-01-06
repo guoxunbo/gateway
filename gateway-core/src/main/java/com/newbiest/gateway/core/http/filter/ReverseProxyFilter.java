@@ -1,7 +1,7 @@
 package com.newbiest.gateway.core.http.filter;
 
-import com.google.common.base.Stopwatch;
 import com.newbiest.base.threadlocal.ThreadLocalContext;
+import com.newbiest.base.utils.CollectionUtils;
 import com.newbiest.base.utils.HttpUtils;
 import com.newbiest.base.utils.StringUtils;
 import com.newbiest.gateway.config.MappingProperties;
@@ -23,10 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.valueOf;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
- * 收到请求之后开始进行转发
+ * 转发请求
  */
 @Slf4j
 public class ReverseProxyFilter extends OncePerRequestFilter {
@@ -60,13 +59,11 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().println("Unsupported domain");
             return;
-        } else {
-            log.debug(String.format("Forwarding: %s %s %s -> %s", method, originHost, originUri, mapping.getDestinations()));
         }
+
         addForwardHeaders(request, headers);
 
-        RequestData dataToForward = new RequestData(method, originHost, originUri, headers, body, request);
-//        preForwardRequestInterceptor.intercept(dataToForward, mapping);
+        RequestData dataToForward = new RequestData(method, originHost, originUri, headers, body);
         if (dataToForward.isNeedRedirect() && !StringUtils.isNullOrEmpty(dataToForward.getRedirectUrl())) {
             log.debug(String.format("Redirecting to -> %s", dataToForward.getRedirectUrl()));
             response.sendRedirect(dataToForward.getRedirectUrl());
@@ -79,7 +76,7 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
 
     protected void addForwardHeaders(HttpServletRequest request, HttpHeaders headers) {
         List<String> forwordedFor = headers.get(X_FORWARDED_FOR_HEADER);
-        if (isEmpty(forwordedFor)) {
+        if (CollectionUtils.isEmpty(forwordedFor)) {
             forwordedFor = new ArrayList<>(1);
         }
         forwordedFor.add(request.getRemoteAddr());
@@ -93,7 +90,16 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
     protected void processResponse(HttpServletResponse response, ResponseEntity<byte[]> responseEntity) {
         response.setStatus(responseEntity.getStatusCode().value());
         responseEntity.getHeaders().forEach((name, values) ->
-                values.forEach(value -> response.addHeader(name, value))
+                values.forEach(value -> {
+                    // 不再对CORS重新赋值
+                    if ((HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.equals(name) || HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.equals(name)
+                            || HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.equals(name) || HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS.equals(name)
+                            || HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS.equals(name)) && response.getHeaderNames().contains(name))  {
+
+                    } else {
+                        response.addHeader(name, value);
+                    }
+                })
         );
         if (responseEntity.getBody() != null) {
             try {
