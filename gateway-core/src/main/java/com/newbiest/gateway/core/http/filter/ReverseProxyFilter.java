@@ -1,10 +1,12 @@
 package com.newbiest.gateway.core.http.filter;
 
+import com.newbiest.base.exception.ClientException;
 import com.newbiest.base.threadlocal.ThreadLocalContext;
 import com.newbiest.base.utils.CollectionUtils;
 import com.newbiest.base.utils.HttpUtils;
 import com.newbiest.base.utils.StringUtils;
 import com.newbiest.gateway.config.MappingProperties;
+import com.newbiest.gateway.constant.GatewayException;
 import com.newbiest.gateway.core.MappingsProvider;
 import com.newbiest.gateway.core.http.RequestData;
 import com.newbiest.gateway.core.http.RequestForwarder;
@@ -55,10 +57,7 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
         byte[] body = StringUtils.convertStringToBody(ThreadLocalContext.getRequest());
         MappingProperties mapping = mappingsProvider.resolveMapping(originHost, request);
         if (mapping == null) {
-            log.debug(String.format("Forwarding: %s %s %s -> no mapping found", method, originHost, originUri));
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().println("Unsupported domain");
-            return;
+            throw new ClientException(GatewayException.ROUTER_IS_NOT_EXIST);
         }
 
         addForwardHeaders(request, headers);

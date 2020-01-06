@@ -108,7 +108,6 @@ info:
   groupId: VCIM
   developer: XunboGuo
 gateway:
-  enable: false
   mappings:
     - name: all
       host: 172.16.13.116

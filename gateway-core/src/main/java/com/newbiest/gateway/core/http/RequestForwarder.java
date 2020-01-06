@@ -1,10 +1,13 @@
 package com.newbiest.gateway.core.http;
 
 import com.google.common.collect.Lists;
+import com.newbiest.base.exception.ClientException;
+import com.newbiest.base.exception.ClientParameterException;
 import com.newbiest.base.threadlocal.ThreadLocalContext;
 import com.newbiest.base.utils.CollectionUtils;
 import com.newbiest.base.utils.SystemPropertyUtils;
 import com.newbiest.gateway.config.MappingProperties;
+import com.newbiest.gateway.constant.GatewayException;
 import com.newbiest.gateway.core.MappingsProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.FileSystemResource;
@@ -14,9 +17,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -36,7 +41,7 @@ public class RequestForwarder {
         this.mappingsProvider = mappingsProvider;
     }
 
-    public ResponseEntity<byte[]> forwardHttpRequest(RequestData data, MappingProperties mapping) {
+    public ResponseEntity<byte[]> forwardHttpRequest(RequestData data, MappingProperties mapping) throws IOException {
         ForwardDestination destination = resolveForwardDestination(data.getUri(), mapping);
         prepareForwardedRequestHeaders(data, destination);
 
@@ -61,12 +66,6 @@ public class RequestForwarder {
 
     }
 
-    /**
-     * Remove any protocol-level headers from the remote server's response that
-     * do not apply to the new response we are sending.
-     *
-     * @param response
-     */
     protected void prepareForwardedResponseHeaders(ResponseData response) {
         HttpHeaders headers = response.getHeaders();
         headers.remove(TRANSFER_ENCODING);
@@ -95,63 +94,58 @@ public class RequestForwarder {
         }
     }
 
-    protected ResponseData sendFileRequest(MappingProperties mapping, RequestData requestData, URI uri) {
-        ResponseEntity<byte[]> response = null;
+    protected ResponseEntity<byte[]> sendFileRequest(MappingProperties mapping, RequestData requestData, URI uri) throws IOException {
         List<File> tempFiles = Lists.newArrayList();
-        try {
-            String tempFilePath = SystemPropertyUtils.getFileTempDir();
-            Map<String, MultipartFile> multipartFileMap = ThreadLocalContext.getMultipartFileMap();
-            MultiValueMap<String, Object> multiValueMap = new LinkedMultiValueMap<String, Object>();
+        String tempFilePath = SystemPropertyUtils.getFileTempDir();
+        Map<String, MultipartFile> multipartFileMap = ThreadLocalContext.getMultipartFileMap();
+        MultiValueMap<String, Object> multiValueMap = new LinkedMultiValueMap<String, Object>();
 
-            for (String parameterName : multipartFileMap.keySet()) {
-                MultipartFile multipartFile = multipartFileMap.get(parameterName);
-                String fileName = tempFilePath + multipartFile.getOriginalFilename();
-                File tempFile = new File(fileName);
-                multipartFile.transferTo(tempFile);
-                FileSystemResource resource = new FileSystemResource(tempFile.getAbsolutePath());
-                multiValueMap.add(parameterName, resource);
-                tempFiles.add(tempFile);
-            }
-            multiValueMap.add("request", ThreadLocalContext.getRequest());
-            RequestEntity<MultiValueMap<String,Object>> request = new RequestEntity<>(multiValueMap, requestData.getHeaders(), requestData.getMethod(), uri);
-
-            response = httpClientProvider.getHttpClient(mapping.getName()).exchange(request, byte[].class);
-        } catch (HttpStatusCodeException e) {
-            response = status(e.getStatusCode())
-                    .headers(e.getResponseHeaders())
-                    .body(e.getResponseBodyAsByteArray());
-        } catch (Exception e) {
-           log.error(e.getMessage(), e);
-        } finally {
-            if (CollectionUtils.isNotEmpty(tempFiles)) {
-                tempFiles.forEach(tempFile -> tempFile.deleteOnExit());
-            }
+        for (String parameterName : multipartFileMap.keySet()) {
+            MultipartFile multipartFile = multipartFileMap.get(parameterName);
+            String fileName = tempFilePath + multipartFile.getOriginalFilename();
+            File tempFile = new File(fileName);
+            multipartFile.transferTo(tempFile);
+            FileSystemResource resource = new FileSystemResource(tempFile.getAbsolutePath());
+            multiValueMap.add(parameterName, resource);
+            tempFiles.add(tempFile);
         }
-        return new ResponseData(response.getStatusCode(), response.getHeaders(), response.getBody(), requestData);
+        multiValueMap.add("request", ThreadLocalContext.getRequest());
+        RequestEntity<MultiValueMap<String,Object>> request = new RequestEntity<>(multiValueMap, requestData.getHeaders(), requestData.getMethod(), uri);
+
+        ResponseEntity<byte[]> response = httpClientProvider.getHttpClient(mapping.getName()).exchange(request, byte[].class);
+        if (CollectionUtils.isNotEmpty(tempFiles)) {
+            tempFiles.forEach(tempFile -> tempFile.deleteOnExit());
+        }
+        return response;
     }
 
-    protected ResponseData sendBytesRequest(MappingProperties mapping, RequestData requestData, URI uri) {
+    protected ResponseEntity<byte[]> sendBytesRequest(MappingProperties mapping, RequestData requestData, URI uri) {
+        ResponseEntity<byte[]> response;
+        RequestEntity<byte[]> request = new RequestEntity<>(requestData.getBody(), requestData.getHeaders(), requestData.getMethod(), uri);
+        response = httpClientProvider.getHttpClient(mapping.getName()).exchange(request, byte[].class);
+        return response;
+    }
+
+    protected ResponseData sendRequest(MappingProperties mapping, RequestData requestData, URI uri) throws IOException {
         ResponseEntity<byte[]> response;
         try {
-            RequestEntity<byte[]> request = new RequestEntity<>(requestData.getBody(), requestData.getHeaders(), requestData.getMethod(), uri);
-            response = httpClientProvider.getHttpClient(mapping.getName()).exchange(request, byte[].class);
+            Map<String, MultipartFile> multipartFileMap = ThreadLocalContext.getMultipartFileMap();
+            if (multipartFileMap != null && multipartFileMap.size() > 0) {
+                response = sendFileRequest(mapping, requestData, uri);
+            } else {
+                response = sendBytesRequest(mapping, requestData, uri);
+            }
         } catch (HttpStatusCodeException e) {
             response = status(e.getStatusCode())
                     .headers(e.getResponseHeaders())
                     .body(e.getResponseBodyAsByteArray());
+        } catch (ResourceAccessException e) {
+            throw new ClientParameterException(GatewayException.DISTINATION_IS_CLOSED, uri);
         } catch (Exception e) {
             throw e;
         }
         return new ResponseData(response.getStatusCode(), response.getHeaders(), response.getBody(), requestData);
-    }
 
-    protected ResponseData sendRequest(MappingProperties mapping, RequestData requestData, URI uri) {
-        Map<String, MultipartFile> multipartFileMap = ThreadLocalContext.getMultipartFileMap();
-        if (multipartFileMap != null && multipartFileMap.size() > 0) {
-            return sendFileRequest(mapping, requestData, uri);
-        } else {
-            return sendBytesRequest(mapping, requestData, uri);
-        }
     }
 
 }
