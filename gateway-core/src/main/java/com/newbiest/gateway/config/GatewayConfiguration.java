@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,18 @@ public class GatewayConfiguration {
     public GatewayConfiguration() {
     }
 
-    private List<MappingProperties> mappings = new ArrayList<>();
+    private List<MappingProperties> mappings;
+
+    @PostConstruct
+    public void init() {
+        initLoadBalancer();
+    }
+
+    private void initLoadBalancer() {
+        mappings.forEach(mappingProperties -> {
+
+        });
+    }
 
     @Bean
     public FilterRegistrationBean<ReverseProxyFilter> reverseProxyFilterRegistrationBean(ReverseProxyFilter proxyFilter) {
@@ -42,8 +54,6 @@ public class GatewayConfiguration {
         registrationBean.setOrder(HIGHEST_PRECEDENCE + 100);
         return registrationBean;
     }
-
-
 
     @Bean
     @ConditionalOnMissingBean
@@ -80,4 +90,5 @@ public class GatewayConfiguration {
     public MappingsProvider httpCfMappingProvider(HttpClientProvider httpClientProvider, MappingsValidator mappingsValidator) {
         return new HttpCfgMappingsProvider(mappingsValidator, httpClientProvider, mappings);
     }
+
 }

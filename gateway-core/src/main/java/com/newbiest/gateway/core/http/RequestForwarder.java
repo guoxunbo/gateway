@@ -1,7 +1,6 @@
 package com.newbiest.gateway.core.http;
 
 import com.google.common.collect.Lists;
-import com.newbiest.base.exception.ClientException;
 import com.newbiest.base.exception.ClientParameterException;
 import com.newbiest.base.threadlocal.ThreadLocalContext;
 import com.newbiest.base.utils.CollectionUtils;
@@ -84,9 +83,15 @@ public class RequestForwarder {
         return new ForwardDestination(createDestinationUrl(originUri, mapping), mapping.getName());
     }
 
+    /**
+     * 根据负载均衡算法返回目标地址。
+     * @param uri
+     * @param mapping
+     * @return
+     */
     protected URI createDestinationUrl(String uri, MappingProperties mapping) {
 //        String host = loadBalancer.chooseDestination(mapping.getDestinations());
-        String host = mapping.getDestinations().get(0);
+        String host = mapping.getDestinations().get(0).getDestination();
         try {
             return new URI(host + uri);
         } catch(URISyntaxException e) {
@@ -140,7 +145,7 @@ public class RequestForwarder {
                     .headers(e.getResponseHeaders())
                     .body(e.getResponseBodyAsByteArray());
         } catch (ResourceAccessException e) {
-            throw new ClientParameterException(GatewayException.DISTINATION_IS_CLOSED, uri);
+            throw new ClientParameterException(GatewayException.DESTINATION_IS_CLOSED, uri);
         } catch (Exception e) {
             throw e;
         }

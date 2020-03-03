@@ -1,6 +1,7 @@
 package com.newbiest.gateway.core;
 
 import com.newbiest.base.exception.ClientException;
+import com.newbiest.gateway.config.Destination;
 import com.newbiest.gateway.config.MappingProperties;
 import org.springframework.util.StringUtils;
 
@@ -50,18 +51,19 @@ public class MappingsValidator {
         if (isEmpty(mapping.getDestinations())) {
             throw new ClientException("No destination hosts for mapping" + mapping);
         }
-        List<String> correctedHosts = new ArrayList<>(mapping.getDestinations().size());
+        List<Destination> correctedDestinations = new ArrayList<>(mapping.getDestinations().size());
         mapping.getDestinations().forEach(destination -> {
             if (StringUtils.isEmpty(destination)) {
                 throw new ClientException("Empty destination for mapping " + mapping);
             }
-            if (!destination.matches(".+://.+")) {
-                destination = "http://" + destination;
+            String host = destination.getDestination();
+            if (!host.matches(".+://.+")) {
+                host = "http://" + destination;
             }
-//            destination = removeEnd(destination, "/");
-            correctedHosts.add(destination);
+            destination.setDestination(host);
+            correctedDestinations.add(destination);
         });
-        mapping.setDestinations(correctedHosts);
+        mapping.setDestinations(correctedDestinations);
     }
 
     protected void validateHost(MappingProperties mapping) {

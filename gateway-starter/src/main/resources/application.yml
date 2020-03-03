@@ -111,4 +111,7 @@ gateway:
   mappings:
     - name: all
       host: 172.16.13.116
-      destinations: http://127.0.0.1:8080
+      destinations:
+        -
+          weight: 5
+          destination: http://127.0.0.1:8080
