@@ -16,9 +16,6 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
 
-/**
- * Created by guoxunbo on 2019-12-20 10:44
- */
 public class HttpClientProvider {
 
     protected Map<String, RestTemplate> httpClients = Maps.newHashMap();
@@ -38,14 +35,16 @@ public class HttpClientProvider {
     }
 
     protected RestTemplate createRestTemplate(MappingProperties mapping) {
-        CloseableHttpClient client = createHttpClient(mapping).build();
+        CloseableHttpClient client = createHttpClient().build();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
         requestFactory.setConnectTimeout(mapping.getConnectTimeOut());
         requestFactory.setReadTimeout(mapping.getReadTimeOut());
         return new RestTemplate(requestFactory);
     }
 
-    protected HttpClientBuilder createHttpClient(MappingProperties mapping) {
+    protected HttpClientBuilder createHttpClient() {
         return create().useSystemProperties().disableRedirectHandling().disableCookieManagement();
     }
+
+
 }

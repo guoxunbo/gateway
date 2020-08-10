@@ -55,8 +55,6 @@ public class RequestForwarder {
         } else if (!log.isDebugEnabled() && log.isInfoEnabled()) {
             log.info("Forwarded and get Response info");
         }
-//        traceInterceptor.onForwardComplete(traceId, response.getStatus(), response.getBody(), response.getHeaders());
-//        postForwardResponseInterceptor.intercept(response, mapping);
         prepareForwardedResponseHeaders(response);
 
         return status(response.getStatus())
@@ -69,9 +67,7 @@ public class RequestForwarder {
         HttpHeaders headers = response.getHeaders();
         headers.remove(TRANSFER_ENCODING);
         headers.remove(CONNECTION);
-        headers.remove("Public-Key-Pins");
         headers.remove(SERVER);
-        headers.remove("Strict-Transport-Security");
     }
 
     protected void prepareForwardedRequestHeaders(RequestData request, ForwardDestination destination) {

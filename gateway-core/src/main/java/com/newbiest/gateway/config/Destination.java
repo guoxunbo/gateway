@@ -12,8 +12,14 @@ public class Destination implements Serializable {
 
     public static final Integer DEFAULT_WEIGHT = 1;
 
+    /**
+     * 目标地址
+     */
     private String destination;
 
+    /**
+     * 权重
+     */
     private Integer weight = DEFAULT_WEIGHT;
 
     /**

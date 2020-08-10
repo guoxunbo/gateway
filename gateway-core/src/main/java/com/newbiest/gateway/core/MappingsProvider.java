@@ -1,13 +1,12 @@
 package com.newbiest.gateway.core;
 
+import com.newbiest.base.utils.CollectionUtils;
 import com.newbiest.gateway.config.MappingProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Created by guoxunbo on 2019-12-20 11:05
@@ -22,7 +21,7 @@ public abstract class MappingsProvider {
         List<MappingProperties> resolvedMappings = mappings.stream()
                 .filter(mapping -> originHost.toLowerCase().equals(mapping.getHost().toLowerCase()))
                 .collect(Collectors.toList());
-        if (isEmpty(resolvedMappings)) {
+        if (CollectionUtils.isEmpty(resolvedMappings)) {
             return null;
         }
         return resolvedMappings.get(0);

@@ -18,6 +18,8 @@
         <module>gateway-core</module>
         <module>gateway-starter</module>
         <module>gateway-dist</module>
+        <module>gateway-tibco</module>
+        <module>gateway-artemis</module>
     </modules>
     <packaging>pom</packaging>
 

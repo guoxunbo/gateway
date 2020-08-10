@@ -21,12 +21,24 @@ public class MappingProperties {
     public static final String LB_STRATEGY_ROUND_ROBIN = "RoundRobin";
     public static final String LB_STRATEGY_HASH = "Hash";
 
+    /**
+     * 名称 唯一
+     */
     private String name;
 
+    /**
+     * 请求目标IP
+     */
     private String host;
 
-    private String lbStaStrategy = LB_STRATEGY_ROUND_ROBIN;
+    /**
+     *  LoadBalancer的策略
+     */
+    private String lbStrategy = LB_STRATEGY_ROUND_ROBIN;
 
+    /**
+     * 转发过去的地址
+     */
     private List<Destination> destinations;
 
     private Integer connectTimeOut = 0;
@@ -37,12 +49,12 @@ public class MappingProperties {
 
     protected LoadBalancer getLoadBalancer() throws ClientException {
         if (loadBalancer == null) {
-            if (StringUtils.isNullOrEmpty(lbStaStrategy) || LB_STRATEGY_ROUND_ROBIN.equals(lbStaStrategy)) {
+            if (StringUtils.isNullOrEmpty(lbStrategy) || LB_STRATEGY_ROUND_ROBIN.equals(lbStrategy)) {
                 loadBalancer =  new RoundRobinBalancer(destinations);
-            } else if (LB_STRATEGY_HASH.equals(lbStaStrategy)) {
+            } else if (LB_STRATEGY_HASH.equals(lbStrategy)) {
                 loadBalancer = new HashLoadBalancer();
             } else {
-                throw new ClientParameterException(GatewayException.LB_STRATEGY_IS_NOT_SUPPORTED, lbStaStrategy);
+                throw new ClientParameterException(GatewayException.LB_STRATEGY_IS_NOT_SUPPORTED, lbStrategy);
             }
         }
         return loadBalancer;

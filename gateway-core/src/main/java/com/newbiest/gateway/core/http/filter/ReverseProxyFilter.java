@@ -74,12 +74,12 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
     }
 
     protected void addForwardHeaders(HttpServletRequest request, HttpHeaders headers) {
-        List<String> forwordedFor = headers.get(X_FORWARDED_FOR_HEADER);
-        if (CollectionUtils.isEmpty(forwordedFor)) {
-            forwordedFor = new ArrayList<>(1);
+        List<String> forwardedFor = headers.get(X_FORWARDED_FOR_HEADER);
+        if (CollectionUtils.isEmpty(forwardedFor)) {
+            forwardedFor = new ArrayList<>(1);
         }
-        forwordedFor.add(request.getRemoteAddr());
-        headers.put(X_FORWARDED_FOR_HEADER, forwordedFor);
+        forwardedFor.add(request.getRemoteAddr());
+        headers.put(X_FORWARDED_FOR_HEADER, forwardedFor);
         headers.set(X_FORWARDED_PROTO_HEADER, request.getScheme());
         headers.set(X_FORWARDED_HOST_HEADER, request.getServerName());
         headers.set(X_FORWARDED_PORT_HEADER, valueOf(request.getServerPort()));
