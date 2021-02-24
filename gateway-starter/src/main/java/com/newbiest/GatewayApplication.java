@@ -7,10 +7,10 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication(exclude = LiquibaseAutoConfiguration.class)
 @ComponentScan(basePackages = "com.newbiest")
-public class GateAwayApplication {
+public class GatewayApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GateAwayApplication.class, args);
+		SpringApplication.run(GatewayApplication.class, args);
 	}
 
 }

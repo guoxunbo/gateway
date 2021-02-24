@@ -48,47 +48,47 @@ public class GatewayConfiguration {
         });
     }
 
-    @Bean
-    public FilterRegistrationBean<ReverseProxyFilter> reverseProxyFilterRegistrationBean(ReverseProxyFilter proxyFilter) {
-        FilterRegistrationBean<ReverseProxyFilter> registrationBean = new FilterRegistrationBean<>(proxyFilter);
-        registrationBean.setOrder(HIGHEST_PRECEDENCE + 100);
-        return registrationBean;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public RequestForwarder faradayRequestForwarder(
-            HttpClientProvider httpClientProvider,
-            MappingsProvider mappingsProvider) {
-        return new RequestForwarder(httpClientProvider, mappingsProvider);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public ReverseProxyFilter faradayReverseProxyFilter(MappingsProvider mappingsProvider,
-                                                        RequestForwarder requestForwarder) {
-        return new ReverseProxyFilter(mappingsProvider, requestForwarder);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public HttpClientProvider httpClientProvider() {
-        return new HttpClientProvider(mappings);
-    }
-
-
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MappingsValidator mappingsValidator() {
-        return new MappingsValidator();
-    }
-
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MappingsProvider httpCfMappingProvider(HttpClientProvider httpClientProvider, MappingsValidator mappingsValidator) {
-        return new HttpCfgMappingsProvider(mappingsValidator, httpClientProvider, mappings);
-    }
+//    @Bean
+//    public FilterRegistrationBean<ReverseProxyFilter> reverseProxyFilterRegistrationBean(ReverseProxyFilter proxyFilter) {
+//        FilterRegistrationBean<ReverseProxyFilter> registrationBean = new FilterRegistrationBean<>(proxyFilter);
+//        registrationBean.setOrder(HIGHEST_PRECEDENCE + 100);
+//        return registrationBean;
+//    }
+//
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public RequestForwarder faradayRequestForwarder(
+//            HttpClientProvider httpClientProvider,
+//            MappingsProvider mappingsProvider) {
+//        return new RequestForwarder(httpClientProvider, mappingsProvider);
+//    }
+//
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public ReverseProxyFilter faradayReverseProxyFilter(MappingsProvider mappingsProvider,
+//                                                        RequestForwarder requestForwarder) {
+//        return new ReverseProxyFilter(mappingsProvider, requestForwarder);
+//    }
+//
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public HttpClientProvider httpClientProvider() {
+//        return new HttpClientProvider(mappings);
+//    }
+//
+//
+//
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public MappingsValidator mappingsValidator() {
+//        return new MappingsValidator();
+//    }
+//
+//
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public MappingsProvider httpCfMappingProvider(HttpClientProvider httpClientProvider, MappingsValidator mappingsValidator) {
+//        return new HttpCfgMappingsProvider(mappingsValidator, httpClientProvider, mappings);
+//    }
 
 }

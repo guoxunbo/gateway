@@ -31,6 +31,13 @@
 			<artifactId>gateway-core</artifactId>
 			<version>1.0.0.RELEASE</version>
 		</dependency>
+
+
+		<dependency>
+			<groupId>com.newbiest</groupId>
+			<artifactId>gateway-ws</artifactId>
+			<version>1.0.0.RELEASE</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

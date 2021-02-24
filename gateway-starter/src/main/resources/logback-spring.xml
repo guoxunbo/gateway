@@ -61,7 +61,7 @@
     </appender>
 
     <!-- 不可缺少，最基础的日志节点 默认是DEBUG-->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="console" />
         <appender-ref ref="file" />
     </root>

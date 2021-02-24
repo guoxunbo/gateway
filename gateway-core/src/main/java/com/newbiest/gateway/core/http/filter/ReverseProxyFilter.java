@@ -53,7 +53,6 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
         HttpHeaders headers = HttpUtils.getHeaders(request);
         HttpMethod method = HttpUtils.getHttpMethod(request);
 
-        // 读取传递的文件内容
         byte[] body = StringUtils.convertStringToBody(ThreadLocalContext.getRequest());
         MappingProperties mapping = mappingsProvider.resolveMapping(originHost, request);
         if (mapping == null) {

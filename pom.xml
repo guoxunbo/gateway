@@ -20,6 +20,7 @@
         <module>gateway-dist</module>
         <module>gateway-tibco</module>
         <module>gateway-artemis</module>
+        <module>gateway-ws</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -31,7 +32,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <platform.version>1.0.0.RELEASE</platform.version>
-        <newbiest.framework.version>1.0.5.RELEASE</newbiest.framework.version>
+        <newbiest.framework.version>1.0.6-SNAPSHOT</newbiest.framework.version>
     </properties>
 
     <dependencies>
